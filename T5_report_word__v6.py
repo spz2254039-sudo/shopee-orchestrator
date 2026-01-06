@@ -1,6 +1,22 @@
-# T5_report_word__v5.py
-# 變更：新增檔名安全化處理（避免 Windows 命名失敗）+ 長路徑保存
-# 其他維持：EX 插入點、手動紅色連編、網址必佔號+超連結、V2 裁白邊與容錯、V4 書籤
+# T5｜Word 報表輸出模組 v6
+# 變更點：
+# 1) 延續 v5：
+#    - 檔名安全化（避免 Windows 非法字元導致儲存失敗）
+#    - Windows 長路徑（\\?\）支援，避免 260 字元限制
+#
+# 2) v6 新增：
+#    - 支援 desc_imgs 描述圖片插入
+#      * 於每筆商品「頁面截圖（pngs）」之後插入
+#      * 僅於 desc_imgs 非空時顯示「描述圖片（供人工審核）」區塊
+#      * 不影響既有 pngs 行為與版面順序
+#
+# 3) 其餘既有行為維持：
+#    - EX 插入點（正本：後）
+#    - 商品標題紅字連編並進導覽
+#    - 網址必佔行 + 超連結
+#    - v2 圖片裁白邊與容錯
+#    - v4 書籤（item-XXX）
+
 
 from typing import List, Dict, Optional
 from pathlib import Path
@@ -272,4 +288,5 @@ def render_word(segments: List[Dict], out_docx: str) -> str:
         except Exception:
             pass
     return out_path
+
 

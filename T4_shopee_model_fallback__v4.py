@@ -211,3 +211,45 @@ def fallback_model_via_AB(driver, referer_url: str, work_root: str) -> str:
 
     model = _first_model_from_output(output_dir)
     return model or "查無"
+
+
+def download_desc_images_only(driver, referer_url: str, work_root: str) -> List[str]:
+    """
+    只執行 A：擷取描述區圖片 URL → 下載至 {work_root}/desc_ocr/item_NN/INPUT
+    回傳已下載的圖片檔案路徑清單；失敗或無圖則回 []。
+    """
+    if driver is None or not isinstance(referer_url, str) or not isinstance(work_root, str):
+        print(f"{PRINT_PREFIX} A_BAD_ARGS")
+        return []
+    if not _A_OK:
+        print(f"{PRINT_PREFIX} A_UNAVAILABLE")
+        return []
+
+    # --- 基底與項次目錄 ---
+    try:
+        base_dir = os.path.join(work_root, SUBDIR_NAME)
+        _ensure_dir(base_dir)
+        _, item_dir = _next_item_dir(base_dir)   # ex: .../desc_ocr/item_01
+        input_dir = os.path.join(item_dir, INPUT_NAME)
+        _ensure_dir(input_dir)
+        _clean_dir(input_dir)
+        print(f"{PRINT_PREFIX} A_IO_READY item='{os.path.basename(item_dir)}' base='{base_dir}'")
+    except Exception as e:
+        print(f"{PRINT_PREFIX} A_IO_FAIL -> {e}")
+        return []
+
+    # --- A：抓圖 + 下載 ---
+    try:
+        print(f"{PRINT_PREFIX} A_START (download_only)")
+        urls = grab_desc_image_urls(driver) or []
+        print(f"{PRINT_PREFIX} A_URLS n={len(urls)}")
+        if not urls:
+            return []
+        urls = _limit_list(urls, MAX_IMAGES)
+        cookie_hdr = build_cookie_header(driver, "shopee.tw") or ""
+        saved = download_images(urls, input_dir, referer=referer_url, cookie=cookie_hdr) or []
+        print(f"{PRINT_PREFIX} A_OK saved={len(saved)} -> {input_dir}")
+        return list(saved)
+    except Exception as e:
+        print(f"{PRINT_PREFIX} A_ERR -> {e}")
+        return []

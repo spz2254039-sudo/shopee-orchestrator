@@ -90,6 +90,9 @@ class OrchestratorParams:
     api_retry: int = 1
     api_retry_sleep: float = 0.6
 
+    # 🧩 T4 模式：ocr / download_only / off
+    t4_mode: str = "ocr"
+
 
 # =====================================================================
 # 🟨 3. 本次實際使用的 Flags + Params

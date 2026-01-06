@@ -30,7 +30,7 @@ from T3_shopee_api__v1 import (
 # ---- T4 v1: model fallback (若你還沒升到 v1，先註解掉這段) ----
 HAS_T4 = False
 try:
-    from T4_shopee_model_fallback__v4 import fallback_model_via_AB
+    from T4_shopee_model_fallback__v4 import fallback_model_via_AB, download_desc_images_only
     HAS_T4 = True
 except Exception:
     HAS_T4 = False
@@ -183,6 +183,7 @@ class ShopeeDocOrchestrator:
                                     "seller_account": "",
                                     "name": name or "", "seller": seller or "",
                                     "shop_id": shop_id, "url": url, "pngs": [],
+                                    "desc_imgs": [],
                                 })
                                 continue
 
@@ -200,6 +201,7 @@ class ShopeeDocOrchestrator:
                                     "seller_account": "",
                                     "name": name or "", "seller": seller or "",
                                     "shop_id": shop_id, "url": url, "pngs": [],
+                                    "desc_imgs": [],
                                 })
                                 continue
 
@@ -231,10 +233,18 @@ class ShopeeDocOrchestrator:
                     global_idx += 1
 
                 # T4：型號備援（可關）
-                if self.f.use_T4_model_fallback and model_no == "查無" and HAS_T4 and driver:
-                    ok, m = self._safe(fallback_model_via_AB, driver, url, case_dir)
-                    if ok and m and m != "查無":
-                        model_no = m
+                desc_imgs = []
+                if self.f.use_T4_model_fallback and HAS_T4 and driver:
+                    t4_mode = (getattr(self.p, "t4_mode", "ocr") or "ocr").strip().lower()
+                    if model_no == "查無":
+                        if t4_mode == "ocr":
+                            ok, m = self._safe(fallback_model_via_AB, driver, url, case_dir)
+                            if ok and m and m != "查無":
+                                model_no = m
+                        elif t4_mode == "download_only":
+                            ok, imgs = self._safe(download_desc_images_only, driver, url, case_dir)
+                            if ok and imgs:
+                                desc_imgs = list(imgs)
 
                 seg_results.append({
                     "api_title": api_title or (name or "商品名稱未找到"),
@@ -246,6 +256,7 @@ class ShopeeDocOrchestrator:
                     "shop_id": shop_id,
                     "url": url,
                     "pngs": pngs,
+                    "desc_imgs": desc_imgs,
                 })
             seg["results"] = seg_results
 

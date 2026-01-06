@@ -12,6 +12,11 @@
 #   ✔ 決定人工驗證策略（verify_strategy）
 #   ✔ 決定輸出路徑、重試次數等細節（Params）
 #
+# 🧩 T4 模式（t4_mode）說明：
+#   ◎ "off"           → 不啟用 T4 OCR 備援
+#   ◎ "ocr"           → 使用 OCR 作為備援解析
+#   ◎ "download_only" → 只下載圖片/素材，不進行 OCR
+#
 # ===============================================================
 #
 # 🔥 驗證策略（verify_strategy）是本次大改版的核心開關：
@@ -90,8 +95,9 @@ class OrchestratorParams:
     api_retry: int = 1
     api_retry_sleep: float = 0.6
 
-    # 🧩 T4 模式：ocr / download_only / off
+    # 🧩 T4 模式（OCR 備援）
     t4_mode: str = "ocr"
+
 
 
 # =====================================================================
@@ -100,3 +106,5 @@ class OrchestratorParams:
 
 FLAGS = OrchestratorFlags()
 PARAMS = OrchestratorParams()
+
+

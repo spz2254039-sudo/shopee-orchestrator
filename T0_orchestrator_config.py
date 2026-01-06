@@ -13,9 +13,9 @@
 #   ✔ 決定輸出路徑、重試次數等細節（Params）
 #
 # 🧩 T4 模式（t4_mode）說明：
-#   ◎ "off"           → 不啟用 T4 OCR 備援
-#   ◎ "ocr"           → 使用 OCR 作為備援解析
-#   ◎ "download_only" → 只下載圖片/素材，不進行 OCR
+#   ◎ "off"           → 不呼叫 T4（包含 OCR 與 download_only）
+#   ◎ "ocr"           → OCR 備援解析（維持既有行為）
+#   ◎ "download_only" → 只下載描述圖片，不執行 OCR
 #
 # ===============================================================
 #
@@ -105,3 +105,4 @@ class OrchestratorParams:
 
 FLAGS = OrchestratorFlags()
 PARAMS = OrchestratorParams()
+

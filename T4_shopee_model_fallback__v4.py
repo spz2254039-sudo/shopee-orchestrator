@@ -209,5 +209,62 @@ def fallback_model_via_AB(driver, referer_url: str, work_root: str) -> str:
         print(f"{PRINT_PREFIX} B_ERR -> {e}")
         return "查無"
 
+
     model = _first_model_from_output(output_dir)
     return model or "查無"
+
+
+def download_desc_images_only(driver, referer_url: str, work_root: str) -> List[str]:
+    """
+    只下載描述區圖片到 {work_root}/desc_ocr/item_NN/INPUT（不做 OCR、不寫 models_found.txt）
+    回傳依穩定順序命名後的本地路徑清單。
+    """
+    if driver is None or not isinstance(referer_url, str) or not isinstance(work_root, str):
+        print(f"{PRINT_PREFIX} BAD_ARGS")
+        return []
+    if not _A_OK:
+        print(f"{PRINT_PREFIX} A_UNAVAILABLE")
+        return []
+
+    try:
+        base_dir = os.path.join(work_root, SUBDIR_NAME)
+        _ensure_dir(base_dir)
+        _, item_dir = _next_item_dir(base_dir)
+        input_dir = os.path.join(item_dir, INPUT_NAME)
+        _ensure_dir(input_dir)
+        _clean_dir(input_dir)
+        print(f"{PRINT_PREFIX} IO_READY item='{os.path.basename(item_dir)}' base='{base_dir}'")
+    except Exception as e:
+        print(f"{PRINT_PREFIX} IO_FAIL -> {e}")
+        return []
+
+    try:
+        print(f"{PRINT_PREFIX} A_START")
+        urls = grab_desc_image_urls(driver) or []
+        print(f"{PRINT_PREFIX} A_URLS n={len(urls)}")
+        if not urls:
+            return []
+        urls = _limit_list(urls, MAX_IMAGES)
+        cookie_hdr = build_cookie_header(driver, "shopee.tw") or ""
+        saved = download_images(urls, input_dir, referer=referer_url, cookie=cookie_hdr) or []
+        print(f"{PRINT_PREFIX} A_OK saved={len(saved)} -> {input_dir}")
+        if not saved:
+            return []
+    except Exception as e:
+        print(f"{PRINT_PREFIX} A_ERR -> {e}")
+        return []
+
+    renamed_paths: List[str] = []
+    for idx, src in enumerate(saved, start=1):
+        ext = os.path.splitext(src)[1].lower() or ".png"
+        dst_name = f"desc_{idx:02d}{ext}"
+        dst = os.path.join(input_dir, dst_name)
+        try:
+            if os.path.abspath(src) != os.path.abspath(dst):
+                if os.path.exists(dst):
+                    os.remove(dst)
+                os.rename(src, dst)
+            renamed_paths.append(dst)
+        except Exception:
+            renamed_paths.append(src)
+    return renamed_paths

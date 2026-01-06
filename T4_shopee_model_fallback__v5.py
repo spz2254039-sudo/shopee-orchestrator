@@ -1,8 +1,23 @@
-# T4｜型號備援模組 v4（加入白名單修正器）
+# T4｜型號備援模組 v5（白名單修正 + download-only 描述圖支援）
 # 變更點：
-# 1) 沿用 v3：每次呼叫建立 {work_root}/desc_ocr/item_NN/{INPUT|OUTPUT}
-# 2) 新增 confusion_whitelist_fix()，修正常見 OCR 符號誤判（$/ → SY, $ → S, / → Y）
-# 3) 其餘簽名與回傳維持不變（T0 無需修改）
+# 1) 沿用 v3 架構：
+#    - 每次呼叫建立 {work_root}/desc_ocr/item_NN/{INPUT|OUTPUT}
+#    - INPUT 每次清空、OUTPUT 保留歷史
+#
+# 2) 延續 v4：
+#    - 新增 confusion_whitelist_fix()
+#    - 修正常見 OCR 符號誤判（$/ → SY、$ → S、/ → Y）
+#
+# 3) v5 新增：
+#    - download_desc_images_only()
+#      * 僅下載商品描述區圖片（不執行 OCR、不寫 models_found.txt）
+#      * 下載後重新命名為 desc_01, desc_02, ...
+#      * 回傳穩定排序後的本地圖片路徑清單
+#
+# 4) 對外介面與既有 fallback_model_via_AB 簽名維持不變
+#    - T0 依 t4_mode（off / ocr / download_only）決定呼叫路徑
+#    - 既有 OCR 行為不受影響
+
 
 from __future__ import annotations
 import os, sys, shutil, inspect, re
@@ -268,3 +283,4 @@ def download_desc_images_only(driver, referer_url: str, work_root: str) -> List[
         except Exception:
             renamed_paths.append(src)
     return renamed_paths
+

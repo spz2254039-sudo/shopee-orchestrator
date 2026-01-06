@@ -193,11 +193,11 @@ def _insert_one_item_block(doc: Document, r: Dict, url_text: str, usable_w: int,
         if _is_existing_file(p):
             targets = [p]
 
-    for p in targets:
-        try:
-            p2 = _autocrop_lr_whitespace(p)
-            doc.add_picture(p2, width=usable_w)
-            para = doc.paragraphs[-1]
+    for p in targets:␊
+        try:␊
+            p2 = _autocrop_lr_whitespace(p)␊
+            doc.add_picture(p2, width=usable_w)␊
+            para = doc.paragraphs[-1]␊
             para.alignment = WD_ALIGN_PARAGRAPH.LEFT
             fmt = para.paragraph_format
             fmt.space_before = Pt(0)
@@ -205,8 +205,23 @@ def _insert_one_item_block(doc: Document, r: Dict, url_text: str, usable_w: int,
         except Exception as e:
             doc.add_paragraph(f"[圖片插入失敗: {os.path.basename(p)} - {e}]")
 
-    doc.add_paragraph("")
-
+    desc_imgs = r.get("desc_imgs") or []
+    if desc_imgs:
+        doc.add_paragraph("描述圖片（供人工審核）：")
+        for p in desc_imgs:
+            if not _is_existing_file(p):
+                continue
+            try:
+                p2 = _autocrop_lr_whitespace(p)
+                doc.add_picture(p2, width=usable_w)
+                para = doc.paragraphs[-1]
+                para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                fmt = para.paragraph_format
+                fmt.space_before = Pt(0)
+                fmt.space_after = Pt(6)
+            except Exception as e:
+                doc.add_paragraph(f"[圖片插入失敗: {os.path.basename(p)} - {e}]")
+        doc.add_paragraph("")
 # ----------------------- 主 API -----------------------
 def render_word(segments: List[Dict], out_docx: str) -> str:
     out_path = str(Path(out_docx))
@@ -257,3 +272,4 @@ def render_word(segments: List[Dict], out_docx: str) -> str:
         except Exception:
             pass
     return out_path
+
